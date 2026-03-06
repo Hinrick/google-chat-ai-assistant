@@ -1,0 +1,23 @@
+{
+  "name": "google-chat-ai-assistant",
+  "version": "1.0.0",
+  "description": "AI assistant for Google Chat - automated project management, progress tracking, and team coordination",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "@notionhq/client": "^2.2.0",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.0",
+    "googleapis": "^144.0.0",
+    "pg": "^8.13.0"
+  }
+}
