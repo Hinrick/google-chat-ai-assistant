@@ -35,6 +35,7 @@ const migrations = [
     status TEXT DEFAULT 'todo',
     project_id INTEGER REFERENCES projects(id),
     next_task_id INTEGER REFERENCES tasks(id),
+    sort_order INTEGER DEFAULT 0,
     created_by TEXT,
     completed_at TIMESTAMPTZ,
     notion_page_id TEXT,
@@ -50,6 +51,13 @@ const migrations = [
     steps JSONB NOT NULL DEFAULT '[]',
     created_at TIMESTAMPTZ DEFAULT NOW()
   )`,
+
+  // Add sort_order if missing (for existing DBs)
+  `DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tasks' AND column_name = 'sort_order') THEN
+      ALTER TABLE tasks ADD COLUMN sort_order INTEGER DEFAULT 0;
+    END IF;
+  END $$`,
 
   // Auto-update updated_at
   `CREATE OR REPLACE FUNCTION update_updated_at()

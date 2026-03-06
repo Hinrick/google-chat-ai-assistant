@@ -4,15 +4,10 @@ const express = require('express');
 const { handleChatEvent } = require('./chat/handler');
 const { initDb } = require('./db/pool');
 const { startSyncLoop } = require('./sync/notion');
+const { startReminderScheduler } = require('./tools/reminders');
 
 const app = express();
 app.use(express.json());
-
-// Log all incoming requests for debugging
-app.use('/chat', (req, res, next) => {
-  console.log(`[REQ] ${req.method} /chat — type: ${req.body?.type}, auth: ${req.headers.authorization ? 'present' : 'none'}`);
-  next();
-});
 
 // Google Chat sends events here
 app.post('/chat', async (req, res) => {
@@ -21,7 +16,15 @@ app.post('/chat', async (req, res) => {
     res.json(response);
   } catch (err) {
     console.error('[CHAT] Error handling event:', err);
-    res.json({ text: '抱歉，發生錯誤，請稍後再試。' });
+    res.json({
+      hostAppDataAction: {
+        chatDataAction: {
+          createMessageAction: {
+            message: { text: '抱歉，發生錯誤，請稍後再試。' },
+          },
+        },
+      },
+    });
   }
 });
 
@@ -34,13 +37,14 @@ async function start() {
   await initDb();
   console.log('[DB] Connected');
 
-  // Sync PG → Notion every 5 minutes
   startSyncLoop(5 * 60 * 1000);
   console.log('[SYNC] Notion sync started (every 5 min)');
 
+  startReminderScheduler();
+
   const port = process.env.PORT || 8080;
   app.listen(port, () => {
-    console.log(`=== Google Chat AI Assistant v1.0 ===`);
+    console.log(`=== Google Chat AI Assistant v2.0 ===`);
     console.log(`Listening on port ${port}`);
   });
 }
