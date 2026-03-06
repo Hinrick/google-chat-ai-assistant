@@ -62,12 +62,13 @@ async function handleProjectCommand(action, params, context) {
           [`%${project_name}%`]
         );
       } else {
+        // Try space_id first, fall back to all active projects
         result = await query(
           `SELECT p.*,
             (SELECT COUNT(*) FROM tasks WHERE project_id = p.id) as total_tasks,
             (SELECT COUNT(*) FROM tasks WHERE project_id = p.id AND status = 'done') as done_tasks,
             (SELECT COUNT(*) FROM tasks WHERE project_id = p.id AND status != 'done' AND deadline < CURRENT_DATE) as overdue_tasks
-           FROM projects p WHERE p.space_id = $1
+           FROM projects p WHERE p.space_id = $1 OR p.space_id IS NULL
            ORDER BY p.created_at DESC LIMIT 5`,
           [context.spaceId]
         );
@@ -82,9 +83,10 @@ async function handleProjectCommand(action, params, context) {
         const progress = total > 0 ? Math.round((done / total) * 100) : 0;
         const bar = '█'.repeat(Math.floor(progress / 10)) + '░'.repeat(10 - Math.floor(progress / 10));
 
+        const fmtDate = (d) => d ? new Date(d).toISOString().split('T')[0] : '?';
         let status = `📋 **${p.name}** [${p.status}]\n`;
         status += `   ${bar} ${progress}% (${done}/${total})\n`;
-        status += `   ${p.start_date || '?'} → ${p.end_date || '?'}`;
+        status += `   ${fmtDate(p.start_date)} → ${fmtDate(p.end_date)}`;
         if (overdue > 0) status += `\n   🚨 逾期任務：${overdue} 個`;
         return status;
       }).join('\n\n');

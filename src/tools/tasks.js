@@ -58,12 +58,13 @@ async function handleTaskCommand(action, params, context) {
         );
         if (next.rows.length > 0) {
           const n = next.rows[0];
-          response += `\n⏭️ 下一步：「${n.name}」— ${n.assignee || '未指派'} (截止：${n.deadline || '無'})`;
+          const fmtDl = n.deadline ? new Date(n.deadline).toISOString().split('T')[0] : '無';
+          response += `\n⏭️ 下一步：「${n.name}」— ${n.assignee || '未指派'} (截止：${fmtDl})`;
 
           // Proactively send notification to the space
           if (n.space_id) {
             await sendMessage(n.space_id,
-              `🔔 **任務接力通知**\n「${task.name}」已完成！\n\n下一個任務「${n.name}」現在可以開始了。\n負責人：${n.assignee || '未指派'}\n截止日：${n.deadline || '未設定'}`
+              `🔔 **任務接力通知**\n「${task.name}」已完成！\n\n下一個任務「${n.name}」現在可以開始了。\n負責人：${n.assignee || '未指派'}\n截止日：${fmtDl}`
             );
           }
         }
