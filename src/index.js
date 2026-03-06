@@ -8,6 +8,12 @@ const { startSyncLoop } = require('./sync/notion');
 const app = express();
 app.use(express.json());
 
+// Log all incoming requests for debugging
+app.use('/chat', (req, res, next) => {
+  console.log(`[REQ] ${req.method} /chat — type: ${req.body?.type}, auth: ${req.headers.authorization ? 'present' : 'none'}`);
+  next();
+});
+
 // Google Chat sends events here
 app.post('/chat', async (req, res) => {
   try {
