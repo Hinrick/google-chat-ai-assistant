@@ -33,17 +33,21 @@ async function syncProjectsToNotion() {
         ? Math.round((project.done_tasks / project.total_tasks) * 100)
         : 0;
 
+      const fmtDate = (d) => d ? new Date(d).toISOString().split('T')[0] : null;
+
       const properties = {
         'Name': { title: [{ text: { content: project.name } }] },
         'Status': { select: { name: project.status || 'active' } },
         'Progress': { number: progress },
       };
 
-      if (project.start_date) {
-        properties['Start Date'] = { date: { start: project.start_date } };
+      const startDate = fmtDate(project.start_date);
+      const endDate = fmtDate(project.end_date);
+      if (startDate) {
+        properties['Start Date'] = { date: { start: startDate } };
       }
-      if (project.end_date) {
-        properties['End Date'] = { date: { start: project.end_date } };
+      if (endDate) {
+        properties['End Date'] = { date: { start: endDate } };
       }
 
       if (project.notion_page_id) {

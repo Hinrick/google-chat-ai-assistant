@@ -13,6 +13,7 @@ app.use(express.json());
 app.post('/chat', async (req, res) => {
   try {
     const response = await handleChatEvent(req.body);
+    if (!response) return res.json({});
     res.json(response);
   } catch (err) {
     console.error('[CHAT] Error handling event:', err);

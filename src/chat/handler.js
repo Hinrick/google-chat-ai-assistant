@@ -36,10 +36,27 @@ async function handleChatEvent(event) {
     return formatResponse('你好！我是專案管理 AI 助手。輸入「幫助」查看我能做什麼。');
   }
 
-  const userText = message.argumentText?.trim() || message.text || '';
+  const rawText = message.text || '';
+  const argumentText = message.argumentText?.trim() || '';
   const userName = user?.displayName || message.sender?.displayName || 'Unknown';
   const userId = user?.name || message.sender?.name;
   const spaceId = space?.name || '';
+
+  // In spaces: respond to @mentions (argumentText) or messages containing "山本"
+  // In DMs: respond to everything
+  const isDirectMention = !!argumentText;
+  const isTriggerWord = rawText.includes('山本');
+
+  if (!isDirectMention && !isTriggerWord && space?.type === 'SPACE') {
+    return null; // Ignore messages not directed at the bot
+  }
+
+  // Strip "山本" trigger prefix from raw text if no argumentText
+  let userText = argumentText;
+  if (!userText && isTriggerWord) {
+    userText = rawText.replace(/山本[^\s]*/g, '').trim();
+  }
+  if (!userText) userText = rawText;
 
   console.log(`[MSG] ${userName}: ${userText}`);
 
