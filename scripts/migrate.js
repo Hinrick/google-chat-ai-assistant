@@ -78,6 +78,75 @@ const migrations = [
       FOR EACH ROW EXECUTE FUNCTION update_updated_at();
     END IF;
   END $$`,
+
+  // space_members table
+  `CREATE TABLE IF NOT EXISTS space_members (
+    id SERIAL PRIMARY KEY,
+    space_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    role TEXT,
+    department TEXT,
+    email TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(space_id, user_name)
+  )`,
+
+  // Add email column to space_members if missing
+  `DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'space_members' AND column_name = 'email') THEN
+      ALTER TABLE space_members ADD COLUMN email TEXT;
+    END IF;
+  END $$`,
+
+  // task_templates table
+  `CREATE TABLE IF NOT EXISTS task_templates (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    department TEXT,
+    subtasks JSONB NOT NULL DEFAULT '[]',
+    estimated_days INTEGER DEFAULT 1,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+
+  // Add hierarchical task columns
+  `DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tasks' AND column_name = 'parent_task_id') THEN
+      ALTER TABLE tasks ADD COLUMN parent_task_id INTEGER REFERENCES tasks(id);
+    END IF;
+  END $$`,
+
+  `DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tasks' AND column_name = 'is_routine') THEN
+      ALTER TABLE tasks ADD COLUMN is_routine BOOLEAN DEFAULT FALSE;
+    END IF;
+  END $$`,
+
+  `DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tasks' AND column_name = 'recurrence') THEN
+      ALTER TABLE tasks ADD COLUMN recurrence TEXT;
+    END IF;
+  END $$`,
+
+  `DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tasks' AND column_name = 'description') THEN
+      ALTER TABLE tasks ADD COLUMN description TEXT;
+    END IF;
+  END $$`,
+
+  // Google Tasks & Calendar integration columns
+  `DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tasks' AND column_name = 'google_task_id') THEN
+      ALTER TABLE tasks ADD COLUMN google_task_id TEXT;
+    END IF;
+  END $$`,
+
+  `DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tasks' AND column_name = 'google_event_id') THEN
+      ALTER TABLE tasks ADD COLUMN google_event_id TEXT;
+    END IF;
+  END $$`,
 ];
 
 async function migrate() {

@@ -11,25 +11,39 @@ Return ONLY raw JSON, no markdown, no backticks, no explanation. Format:
 Actions:
 - "create_project" — user wants to create a new project
 - "project_status" — user asks about project progress/status
-- "create_task" — user wants to add a task
+- "create_task" — user wants to add a task (if they mention a template name like 產品拍攝/文案撰寫/展場設計/社群貼文/客戶提案, include template_name)
+- "create_main_task" — user explicitly wants to create a main task from template with subtasks
 - "complete_task" — user marks a task as done
 - "my_tasks" — user wants to see their tasks
+- "task_detail" — user asks about a specific task's details/subtasks
+- "task_templates" — user asks about available task templates
 - "simulate_delay" — user asks about delay impact
 - "list_templates" — user asks about SOP templates
 - "apply_template" — user wants to apply an SOP template to a project
 - "closure_report" — user wants a project closure/summary report
+- "add_member" — user wants to register a team member with role/department
+- "sync_members" — user wants to sync/refresh members from the chat group
+- "list_members" — user asks who's in the team
+- "team_workload" — user asks about team workload/who's busy
 - "unknown" — unrelated or unclear
 
 Parameter schemas:
 - create_project: { "name": string, "start_date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD", "members": string[] }
 - project_status: { "project_name": string | null }
-- create_task: { "name": string, "assignee": string, "deadline": "YYYY-MM-DD", "project_name": string | null }
+- create_task: { "name": string, "assignee": string, "deadline": "YYYY-MM-DD", "project_name": string | null, "template_name": string | null }
+- create_main_task: { "name": string, "template_name": string, "deadline": "YYYY-MM-DD", "project_name": string | null }
 - complete_task: { "task_name": string }
 - my_tasks: {}
+- task_detail: { "task_name": string }
+- task_templates: {}
 - simulate_delay: { "project_name": string | null, "delay_days": number, "reason": string }
 - list_templates: {}
 - apply_template: { "project_name": string, "template_name": string | null }
 - closure_report: { "project_name": string }
+- sync_members: {}
+- add_member: { "name": string, "role": string | null, "department": string | null, "email": string | null }
+- list_members: {}
+- team_workload: {}
 
 If the message is casual chat, greeting, or unrelated to project management, return {"action":"unknown","params":{}}.
 If you can't determine the date, use null. Today is ${new Date().toISOString().split('T')[0]}.`;
